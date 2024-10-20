@@ -1,8 +1,10 @@
 import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
 import numpy as np
 import pandas as pd
 import seaborn as sns
 from prettytable import PrettyTable
+from scipy.stats import gaussian_kde
 
 #read data
 df = pd.read_csv('Train_data.csv')
@@ -77,50 +79,117 @@ def plotscatter(numericalcols):
         plt.show()  # Display the plot
 
 
-def analyze_and_plot_joint_distribution(df, numericalcols, categoricalcols):
+# def analyze_and_plot_joint_distribution(df, numericalcols, categoricalcols):
+#
+#     # Function to calculate and plot joint PMF for categorical fields
+#     def plot_joint_pmf(x_field, y_field):
+#         joint_counts = pd.crosstab(df[x_field], df[y_field])
+#         joint_pmf = joint_counts / joint_counts.sum().sum()  # Normalize to get PMF
+#
+#         plt.figure(figsize=(10, 6))
+#         sns.heatmap(joint_pmf, annot=True, cmap='Blues')
+#         plt.title(f'Joint PMF of {x_field} and {y_field}')
+#         plt.xlabel(y_field)
+#         plt.ylabel(x_field)
+#         plt.show()
+#
+#     # Function to calculate and plot joint PDF for numerical fields
+#     def plot_joint_pdf(x_field, y_field):
+#         if df[x_field].nunique() < 2 or df[y_field].nunique() < 2:
+#             print(f"Skipping {x_field} and {y_field} due to insufficient unique values.")
+#             return  # Skip plotting if not enough unique values
+#
+#         plt.figure(figsize=(10, 6))
+#
+#         # Filter duplicates to avoid contour issues
+#         filtered_df = df[[x_field, y_field]].drop_duplicates()
+#
+#         # Use KDE for plotting
+#         sns.kdeplot(x=filtered_df[x_field], y=filtered_df[y_field], fill=True, cmap='Blues', thresh=0, bw_adjust=0.5)
+#         plt.title(f'Joint PDF of {x_field} and {y_field}')
+#         plt.xlabel(x_field)
+#         plt.ylabel(y_field)
+#         plt.grid(True)
+#         plt.show()
+#
+#     # Loop through numeric columns to calculate joint PDFs
+#     for i in range(0, len(numeric_cols) - 1, 2):
+#         x_field = numericalcols[i]
+#         y_field = numericalcols[i + 1]
+#         plot_joint_pdf(x_field, y_field)
+#
+#     # Loop through categorical columns to calculate joint PMFs
+#     for i in range(0, len(categorical_cols) - 1, 2):
+#         x_field = categoricalcols[i]
+#         y_field = categoricalcols[i + 1]
+#         plot_joint_pmf(x_field, y_field)
 
-    # Function to calculate and plot joint PMF for categorical fields
-    def plot_joint_pmf(x_field, y_field):
-        joint_counts = pd.crosstab(df[x_field], df[y_field])
-        joint_pmf = joint_counts / joint_counts.sum().sum()  # Normalize to get PMF
+def analyze_and_plot_joint_distributions(df,numericalcols,categoricalcols):
+    """
+    Analyzes the dataframe and plots joint distributions for pairs of fields.
+    Handles numerical-numerical, categorical-categorical, and numerical-categorical cases.
+    """
 
-        plt.figure(figsize=(10, 6))
-        sns.heatmap(joint_pmf, annot=True, cmap='Blues')
-        plt.title(f'Joint PMF of {x_field} and {y_field}')
-        plt.xlabel(y_field)
-        plt.ylabel(x_field)
-        plt.show()
+    # Iterate over pairs of numeric columns (0-1, 2-3, etc.)
+    for i in range(0, max(len(numericalcols), len(categoricalcols)) - 1, 2):
+        if i < len(numericalcols) - 1:
+            x_field = numericalcols[i]
+            y_field = numericalcols[i + 1]
 
-    # Function to calculate and plot joint PDF for numerical fields
-    def plot_joint_pdf(x_field, y_field):
-        if df[x_field].nunique() < 2 or df[y_field].nunique() < 2:
-            print(f"Skipping {x_field} and {y_field} due to insufficient unique values.")
-            return  # Skip plotting if not enough unique values
+            # Drop NaN values for the selected fields
+            data = df[[x_field, y_field]].dropna()
 
-        plt.figure(figsize=(10, 6))
+            # Get x and y values
+            x = data[x_field]
+            y = data[y_field]
 
-        # Filter duplicates to avoid contour issues
-        filtered_df = df[[x_field, y_field]].drop_duplicates()
+            # Create a figure for 3D plotting
+            fig = plt.figure(figsize=(10, 6))
+            ax = fig.add_subplot(111, projection='3d')
 
-        # Use KDE for plotting
-        sns.kdeplot(x=filtered_df[x_field], y=filtered_df[y_field], fill=True, cmap='Blues', thresh=0, bw_adjust=0.5)
-        plt.title(f'Joint PDF of {x_field} and {y_field}')
-        plt.xlabel(x_field)
-        plt.ylabel(y_field)
-        plt.grid(True)
-        plt.show()
+            # Calculate and plot the joint distribution as a 3D surface
+            sns.histplot(data, x=x_field, y=y_field, bins=30, pthresh=0.1, cmap='viridis', cbar=True, ax=ax)
+            ax.set_xlabel(x_field)
+            ax.set_ylabel(y_field)
+            ax.set_zlabel('Frequency')
+            plt.title(f'3D Joint Distribution of {x_field} and {y_field}')
 
-    # Loop through numeric columns to calculate joint PDFs
-    for i in range(0, len(numeric_cols) - 1, 2):
-        x_field = numericalcols[i]
-        y_field = numericalcols[i + 1]
-        plot_joint_pdf(x_field, y_field)
+            # Show the plot
+            plt.show()
 
-    # Loop through categorical columns to calculate joint PMFs
-    for i in range(0, len(categorical_cols) - 1, 2):
-        x_field = categoricalcols[i]
-        y_field = categoricalcols[i + 1]
-        plot_joint_pmf(x_field, y_field)
+        if i < len(categoricalcols) - 1:
+            cat1 = categoricalcols[i]
+            cat2 = categoricalcols[i + 1]
+
+            # Drop NaN values for the selected fields
+            data = df[[cat1, cat2]].dropna()
+
+            # Calculate and plot joint PMF
+            joint_pmf = data.groupby([cat1, cat2]).size() / len(data)
+            joint_pmf = joint_pmf.unstack(fill_value=0)
+
+            # Create a heatmap for the joint PMF
+            plt.figure(figsize=(10, 6))
+            sns.heatmap(joint_pmf, annot=True, fmt=".2f", cmap='Blues')
+            plt.title(f'Joint PMF of {cat1} and {cat2}')
+            plt.xlabel(cat2)
+            plt.ylabel(cat1)
+            plt.show()
+
+        if i < len(numeric_cols) and i < len(categorical_cols):
+            num_field = numeric_cols[i]
+            cat_field = categorical_cols[i]
+
+            # Drop NaN values for the selected fields
+            data = df[[num_field, cat_field]].dropna()
+
+            # Create a bar plot for numerical values across categories
+            plt.figure(figsize=(10, 6))
+            sns.histplot(data, x=num_field, hue=cat_field, multiple="stack", kde=True)
+            plt.title(f'Distribution of {num_field} by {cat_field}')
+            plt.xlabel(num_field)
+            plt.ylabel('Frequency')
+            plt.show()
 
 
 # Checking which columns are pdf and which are pmf+cdf and plotting
@@ -166,7 +235,7 @@ def analyze_and_plot_distributions(df, class_column):
 
 
 analyze_and_plot_distributions(df, 'class')
-analyze_and_plot_joint_distribution(df, numeric_cols, categorical_cols)
+analyze_and_plot_joint_distributions(df, numeric_cols, categorical_cols)
 plotscatter(numeric_cols)
 
 
