@@ -1,3 +1,4 @@
+import random
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 import numpy as np
@@ -25,6 +26,7 @@ def maketable(data):
         table.add_row([col, val])
     return table
 
+
 #plotting details
 def plot_pmf(df, column):
     pmf = df[column].value_counts(normalize=True)  # Normalize to get probabilities
@@ -36,6 +38,7 @@ def plot_pmf(df, column):
     plt.xticks(rotation=45)
     plt.tight_layout()
     plt.show()
+
 
 def plot_pdf(df, column):
     plt.figure(figsize=(8, 4))
@@ -64,132 +67,86 @@ def plot_cdf(df, column):
     plt.tight_layout()
     plt.show()
 
+
 def plotscatter(numericalcols):
-    for i in range(0, len(numericalcols) - 1, 2):  # Iterating by steps of 2, not going over bounds
-        x_field = numericalcols[i] # First column
-        y_field = numericalcols[i + 1] # Second column
+    # for i in range(0, len(numericalcols) - 1, 2):  # Iterating by steps of 2, not going over bounds
+    #For now, make it choose any 2
+    number1 = random.randint(1, len(numericalcols) - 1)
+    number2 = random.randint(1, len(numericalcols) - 1)
+    x_field = numericalcols[number1]  # First column
+    y_field = numericalcols[number2]  # Second column
+
+    plt.figure(figsize=(10, 6))
+    plt.scatter(df[x_field], df[y_field], alpha=0.5, color='blue')  # Use alpha for point transparency
+    plt.title(f'Scatter Plot between {x_field} and {y_field}')
+    plt.xlabel(x_field)
+    plt.ylabel(y_field)
+    plt.grid(True)
+    plt.tight_layout()
+    plt.show()  # Display the plot
+
+
+def analyze_and_plot_joint_distribution(df, numericalcols, categoricalcols):
+    # Function to calculate and plot joint PMF for categorical fields
+    def plot_joint_pmf(x_field, y_field):
+        joint_counts = pd.crosstab(df[x_field], df[y_field])
+        joint_pmf = joint_counts / joint_counts.sum().sum()  # Normalize to get PMF
 
         plt.figure(figsize=(10, 6))
-        plt.scatter(df[x_field], df[y_field], alpha=0.5, color='blue')  # Use alpha for point transparency
-        plt.title(f'Scatter Plot between {x_field} and {y_field}')
-        plt.xlabel(x_field)
-        plt.ylabel(y_field)
-        plt.grid(True)
-        plt.tight_layout()
-        plt.show()  # Display the plot
+        sns.heatmap(joint_pmf, annot=True, cmap='Blues')
+        plt.title(f'Joint PMF of {x_field} and {y_field}')
+        plt.xlabel(y_field)
+        plt.ylabel(x_field)
+        plt.show()
 
+    # Function to calculate and plot joint PDF for numerical fields
+    def plot_joint_pdf(x_field, y_field):
+        # Filter duplicates and NaN values to avoid contour issues
+        filtered_df = df[[x_field, y_field]].drop_duplicates().dropna()
 
-# def analyze_and_plot_joint_distribution(df, numericalcols, categoricalcols):
-#
-#     # Function to calculate and plot joint PMF for categorical fields
-#     def plot_joint_pmf(x_field, y_field):
-#         joint_counts = pd.crosstab(df[x_field], df[y_field])
-#         joint_pmf = joint_counts / joint_counts.sum().sum()  # Normalize to get PMF
-#
-#         plt.figure(figsize=(10, 6))
-#         sns.heatmap(joint_pmf, annot=True, cmap='Blues')
-#         plt.title(f'Joint PMF of {x_field} and {y_field}')
-#         plt.xlabel(y_field)
-#         plt.ylabel(x_field)
-#         plt.show()
-#
-#     # Function to calculate and plot joint PDF for numerical fields
-#     def plot_joint_pdf(x_field, y_field):
-#         if df[x_field].nunique() < 2 or df[y_field].nunique() < 2:
-#             print(f"Skipping {x_field} and {y_field} due to insufficient unique values.")
-#             return  # Skip plotting if not enough unique values
-#
-#         plt.figure(figsize=(10, 6))
-#
-#         # Filter duplicates to avoid contour issues
-#         filtered_df = df[[x_field, y_field]].drop_duplicates()
-#
-#         # Use KDE for plotting
-#         sns.kdeplot(x=filtered_df[x_field], y=filtered_df[y_field], fill=True, cmap='Blues', thresh=0, bw_adjust=0.5)
-#         plt.title(f'Joint PDF of {x_field} and {y_field}')
-#         plt.xlabel(x_field)
-#         plt.ylabel(y_field)
-#         plt.grid(True)
-#         plt.show()
-#
-#     # Loop through numeric columns to calculate joint PDFs
-#     for i in range(0, len(numeric_cols) - 1, 2):
-#         x_field = numericalcols[i]
-#         y_field = numericalcols[i + 1]
-#         plot_joint_pdf(x_field, y_field)
-#
-#     # Loop through categorical columns to calculate joint PMFs
-#     for i in range(0, len(categorical_cols) - 1, 2):
-#         x_field = categoricalcols[i]
-#         y_field = categoricalcols[i + 1]
-#         plot_joint_pmf(x_field, y_field)
+        # Ensure sufficient unique values before plotting
+        if filtered_df[x_field].nunique() < 2 or filtered_df[y_field].nunique() < 2:
+            print(f"Skipping {x_field} and {y_field} due to insufficient unique values.")
+            return
 
-def analyze_and_plot_joint_distributions(df,numericalcols,categoricalcols):
-    """
-    Analyzes the dataframe and plots joint distributions for pairs of fields.
-    Handles numerical-numerical, categorical-categorical, and numerical-categorical cases.
-    """
+        plt.figure(figsize=(10, 6))
 
-    # Iterate over pairs of numeric columns (0-1, 2-3, etc.)
-    for i in range(0, max(len(numericalcols), len(categoricalcols)) - 1, 2):
-        if i < len(numericalcols) - 1:
-            x_field = numericalcols[i]
-            y_field = numericalcols[i + 1]
-
-            # Drop NaN values for the selected fields
-            data = df[[x_field, y_field]].dropna()
-
-            # Get x and y values
-            x = data[x_field]
-            y = data[y_field]
-
-            # Create a figure for 3D plotting
-            fig = plt.figure(figsize=(10, 6))
-            ax = fig.add_subplot(111, projection='3d')
-
-            # Calculate and plot the joint distribution as a 3D surface
-            sns.histplot(data, x=x_field, y=y_field, bins=30, pthresh=0.1, cmap='viridis', cbar=True, ax=ax)
-            ax.set_xlabel(x_field)
-            ax.set_ylabel(y_field)
-            ax.set_zlabel('Frequency')
-            plt.title(f'3D Joint Distribution of {x_field} and {y_field}')
-
-            # Show the plot
+        try:
+            # Use KDE for plotting
+            sns.kdeplot(
+                x=filtered_df[x_field],
+                y=filtered_df[y_field],
+                fill=True,
+                cmap='Blues',
+                thresh=0,
+                bw_adjust=0.5
+            )
+            plt.title(f'Joint PDF of {x_field} and {y_field}')
+            plt.xlabel(x_field)
+            plt.ylabel(y_field)
+            plt.grid(True)
             plt.show()
 
-        if i < len(categoricalcols) - 1:
-            cat1 = categoricalcols[i]
-            cat2 = categoricalcols[i + 1]
+        except ValueError as e:
+            print(f"Error plotting {x_field} vs {y_field}: {e}")
 
-            # Drop NaN values for the selected fields
-            data = df[[cat1, cat2]].dropna()
+    # Randomly select two different numeric columns
+    if len(numericalcols) > 1:
+        number1, number2 = random.sample(range(len(numericalcols)), 2)
+        x_field = numericalcols[number1]
+        y_field = numericalcols[number2]
+        plot_joint_pdf(x_field, y_field)
+    else:
+        print("Not enough numerical columns for joint PDF plotting.")
 
-            # Calculate and plot joint PMF
-            joint_pmf = data.groupby([cat1, cat2]).size() / len(data)
-            joint_pmf = joint_pmf.unstack(fill_value=0)
-
-            # Create a heatmap for the joint PMF
-            plt.figure(figsize=(10, 6))
-            sns.heatmap(joint_pmf, annot=True, fmt=".2f", cmap='Blues')
-            plt.title(f'Joint PMF of {cat1} and {cat2}')
-            plt.xlabel(cat2)
-            plt.ylabel(cat1)
-            plt.show()
-
-        if i < len(numeric_cols) and i < len(categorical_cols):
-            num_field = numeric_cols[i]
-            cat_field = categorical_cols[i]
-
-            # Drop NaN values for the selected fields
-            data = df[[num_field, cat_field]].dropna()
-
-            # Create a bar plot for numerical values across categories
-            plt.figure(figsize=(10, 6))
-            sns.histplot(data, x=num_field, hue=cat_field, multiple="stack", kde=True)
-            plt.title(f'Distribution of {num_field} by {cat_field}')
-            plt.xlabel(num_field)
-            plt.ylabel('Frequency')
-            plt.show()
+    # Randomly select two different categorical columns
+    if len(categoricalcols) > 1:
+        number1, number2 = random.sample(range(len(categoricalcols)), 2)
+        x_field = categoricalcols[number1]
+        y_field = categoricalcols[number2]
+        plot_joint_pmf(x_field, y_field)
+    else:
+        print("Not enough categorical columns for joint PMF plotting.")
 
 
 # Checking which columns are pdf and which are pmf+cdf and plotting
@@ -234,10 +191,88 @@ def analyze_and_plot_distributions(df, class_column):
             print(f"\nSkipping column {column} with type {df[column].dtype}")
 
 
-analyze_and_plot_distributions(df, 'class')
-analyze_and_plot_joint_distributions(df, numeric_cols, categorical_cols)
-plotscatter(numeric_cols)
+def analyze_and_plot_conditional_joint_distribution(df, class_column, numericalcols, categoricalcols):
+    """
+    Analyzes and plots conditional joint distributions for pairs of fields given a class.
+    Randomly selects pairs of fields to plot.
+    """
 
+    # Function to calculate and plot conditional joint PMF for categorical fields
+    def plot_conditional_joint_pmf(x_field, y_field, class_value):
+        data_subset = df[df[class_column] == class_value]
+        joint_counts = pd.crosstab(data_subset[x_field], data_subset[y_field])
+        joint_pmf = joint_counts / joint_counts.sum().sum()  # Normalize to get PMF
+
+        plt.figure(figsize=(10, 6))
+        sns.heatmap(joint_pmf, annot=True, cmap='Blues')
+        plt.title(f'Joint PMF of {x_field} and {y_field} for {class_column} = {class_value}')
+        plt.xlabel(y_field)
+        plt.ylabel(x_field)
+        plt.show()
+
+    # Function to calculate and plot conditional joint PDF for numerical fields
+    def plot_conditional_joint_pdf(x_field, y_field, class_value):
+        data_subset = df[df[class_column] == class_value]
+        filtered_data = data_subset[[x_field, y_field]].dropna().drop_duplicates()
+
+        # Ensure sufficient unique values before plotting
+        if filtered_data[x_field].nunique() < 2 or filtered_data[y_field].nunique() < 2:
+            print(f"Skipping {x_field} and {y_field} for {class_value} due to insufficient unique values.")
+            return
+
+        plt.figure(figsize=(10, 6))
+        try:
+            # Use KDE for plotting with increased smoothing
+            sns.kdeplot(
+                x=filtered_data[x_field],
+                y=filtered_data[y_field],
+                fill=True,
+                cmap='viridis',
+                bw_adjust=1.0  # Adjust this value as needed
+            )
+            plt.title(f'Conditional Joint PDF of {x_field} and {y_field} for {class_column} = {class_value}')
+            plt.xlabel(x_field)
+            plt.ylabel(y_field)
+            plt.grid(True)
+            plt.show()
+
+        except ValueError as e:
+            print(f"Skipping plot for {x_field} vs {y_field} due to error: {e}")
+
+    # Get unique class values
+    class_values = df[class_column].unique()
+
+    # Randomly select pairs of numerical fields and plot conditional joint PDFs
+    if len(numericalcols) >= 2:
+        number1 = random.randint(0, len(numericalcols) - 1)
+        number2 = random.randint(0, len(numericalcols) - 1)
+        while number1 == number2:  # Ensure the fields are different
+            number2 = random.randint(0, len(numericalcols) - 1)
+
+        x_field = numericalcols[number1]
+        y_field = numericalcols[number2]
+
+        for class_value in class_values:
+            plot_conditional_joint_pdf(x_field, y_field, class_value)
+
+    # Randomly select pairs of categorical fields and plot conditional joint PMFs
+    if len(categoricalcols) >= 2:
+        category1 = random.randint(0, len(categoricalcols) - 1)
+        category2 = random.randint(0, len(categoricalcols) - 1)
+        while category1 == category2:  # Ensure the fields are different
+            category2 = random.randint(0, len(categoricalcols) - 1)
+
+        x_field = categoricalcols[category1]
+        y_field = categoricalcols[category2]
+
+        for class_value in class_values:
+            plot_conditional_joint_pmf(x_field, y_field, class_value)
+
+
+analyze_and_plot_distributions(df, 'class')
+analyze_and_plot_joint_distribution(df, numeric_cols, categorical_cols)
+plotscatter(numeric_cols)
+analyze_and_plot_conditional_joint_distribution(df, 'class', numeric_cols, categorical_cols)
 
 #listing columns
 columns = df.columns
@@ -251,7 +286,6 @@ missing_data = df.isnull().sum()
 table = maketable(missing_data)
 table.field_names = ["Column", "Missing values"]
 print("Number of missing values per column:\n", table, "\n")
-
 
 # Select only numeric columns using `select_dtypes`
 numeric_df = df.select_dtypes(include=[np.number])
@@ -272,9 +306,6 @@ table = maketable(unique_values)
 table.field_names = ["Column", "Unique values"]
 print("Number of unique values per column:\n", table, "\n")
 
-
-# Repeat for other metrics like summary statistics or missing data
-
 # Get a quick summary of basic statistics
 summary_statistics = df.describe()
 
@@ -282,7 +313,6 @@ summary_statistics = df.describe()
 table = maketable(summary_statistics)
 table.field_names = ["Column", "Basic Statistics"]
 print("Summary of data:\n", table, "\n")
-
 
 # Calculate each measure individually if needed
 max_values = numeric_df.max()
@@ -304,3 +334,15 @@ print("Maximum values:\n", table1, "\n")
 print("Minimum values:\n", table2, "\n")
 print("Mean values:\n", table3, "\n")
 print("Variance values:\n", table4, "\n")
+
+# Calculate the correlation matrix
+numeric_df = df.select_dtypes(include=[np.number])
+
+correlation_matrix = numeric_df.corr()
+
+# Print the correlation matrix
+print(correlation_matrix)
+plt.figure(figsize=(25, 16))
+sns.heatmap(correlation_matrix, annot=True, cmap='coolwarm', fmt=".2f")
+plt.title('Correlation Matrix')
+plt.show()
