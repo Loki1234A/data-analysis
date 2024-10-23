@@ -92,7 +92,7 @@ def analyze_and_plot_joint_distribution(df, numericalcols, categoricalcols):
         joint_counts = pd.crosstab(df[x_field], df[y_field])
         joint_pmf = joint_counts / joint_counts.sum().sum()  # Normalize to get PMF
 
-        plt.figure(figsize=(10, 6))
+        plt.figure(figsize=(30, 16))
         sns.heatmap(joint_pmf, annot=True, cmap='Blues')
         plt.title(f'Joint PMF of {x_field} and {y_field}')
         plt.xlabel(y_field)
@@ -203,7 +203,7 @@ def analyze_and_plot_conditional_joint_distribution(df, class_column, numericalc
         joint_counts = pd.crosstab(data_subset[x_field], data_subset[y_field])
         joint_pmf = joint_counts / joint_counts.sum().sum()  # Normalize to get PMF
 
-        plt.figure(figsize=(10, 6))
+        plt.figure(figsize=(20, 12))
         sns.heatmap(joint_pmf, annot=True, cmap='Blues')
         plt.title(f'Joint PMF of {x_field} and {y_field} for {class_column} = {class_value}')
         plt.xlabel(y_field)
