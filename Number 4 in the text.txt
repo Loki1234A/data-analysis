@@ -1,0 +1,46 @@
+1. What is Anomaly Detection?
+Anomaly detection is typically used to identify patterns in data that do not conform to expected behavior. This could apply to various domains, such as:
+
+Fraud detection (e.g., financial transactions)
+Network intrusion detection (e.g., unusual network traffic or access patterns)
+Health monitoring (e.g., detecting abnormal vital signs)
+Quality control (e.g., detecting manufacturing defects)
+In these domains, identifying anomalies (outliers or rare events) is crucial because they often indicate significant issues like fraud, cyberattacks, or system failures.
+
+2. Precision vs Recall in Anomaly Detection
+Precision tells you how many of the anomalies flagged by your model are actually true anomalies. This is useful when you want to avoid false positives—i.e., situations where the model wrongly labels something as an anomaly when it’s actually normal. High precision means fewer false alarms.
+
+Recall, on the other hand, measures how many of the actual anomalies (true positives) are correctly detected by the model. In anomaly detection, missing an anomaly (false negative) could have serious consequences, like failing to detect a fraudulent transaction or missing a network intrusion. Therefore, recall is often more important in such cases because the cost of missing true anomalies can be much higher than the cost of raising false alarms.
+
+3. False Positives vs False Negatives
+In many real-world applications of anomaly detection, there is a trade-off between false positives and false negatives. You can fine-tune the model to either:
+
+Raise fewer alarms (reduce false positives) but risk missing actual anomalies (increasing false negatives).
+Raise more alarms (increase false positives) but catch more true anomalies (increase true positives).
+For instance:
+
+In fraud detection: If you lower the threshold to be very strict about what counts as fraudulent, you might miss some fraudulent transactions (false negatives). This could be devastating, as the fraud goes undetected.
+In intrusion detection: You might trigger more alerts for benign activities (false positives) in order to ensure that you catch every possible network intrusion (true positive).
+4. Why is Recall Important in Anomaly Detection?
+In scenarios where the cost of missing an anomaly is high (e.g., fraud, security breaches), recall becomes the more critical metric. Here’s why:
+
+Missing anomalies can lead to catastrophic consequences: A missed fraudulent transaction could result in significant financial loss. Similarly, missing a network intrusion could allow an attacker to cause widespread damage.
+False positives, while annoying, are often more manageable: In comparison, raising an alert for a false positive (e.g., flagging a normal transaction as fraudulent) may cause some disruption, but it doesn’t have the same immediate, severe consequences as missing a true anomaly.
+In fact, many anomaly detection systems are deliberately designed to prioritize high recall, even if it results in a higher number of false positives. This ensures that they catch as many actual anomalies as possible. The trade-off is then addressed later through manual investigation of the alerts or by applying further filtering to reduce the false positives.
+
+5. Real-World Applications Where Recall is Crucial
+Consider these use cases:
+
+Network Security: If an attacker is trying to breach a network, it’s crucial that the detection system identifies the intrusion, even if it generates false alarms (e.g., normal user behavior being flagged as suspicious). If the system misses a breach (a false negative), the attacker can exploit the system undetected.
+
+Fraud Detection in Banking: For credit card fraud detection, you’d want to catch as many fraudulent transactions as possible. Even if it means you might flag a legitimate transaction occasionally (false positive), it’s better than allowing fraud to slip through unnoticed.
+
+Healthcare: In medical diagnostics (e.g., detecting rare diseases or abnormalities in scans), detecting even a single missed case could have life-threatening consequences. Thus, recall (catching all possible positive cases) becomes critical, even at the expense of some false positives.
+
+6. Recall's Role in Threshold Adjustment
+In anomaly detection models, recall is often optimized by adjusting the threshold used to flag anomalies. By lowering the threshold, the model may detect more anomalies (increasing recall) but at the cost of introducing more false positives. Therefore, you must strike a balance based on the critical nature of the problem you're addressing. If catching as many anomalies as possible is paramount, recall should be prioritized over precision.
+
+Conclusion:
+In anomaly detection, recall is often the most important metric, especially in scenarios where the consequences of missing a true anomaly are severe. This is because you’d rather flag too many anomalies (with some false positives) than miss a critical anomaly (leading to catastrophic outcomes).
+
+In short: Prioritize recall when the cost of missing an anomaly is high, even if it means raising more false alarms.
