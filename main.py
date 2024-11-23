@@ -269,10 +269,10 @@ def analyze_and_plot_conditional_joint_distribution(df, class_column, numericalc
             plot_conditional_joint_pmf(x_field, y_field, class_value)
 
 
-analyze_and_plot_distributions(df, 'class')
+#analyze_and_plot_distributions(df, 'class')
 analyze_and_plot_joint_distribution(df, numeric_cols, categorical_cols)
-plotscatter(numeric_cols)
-analyze_and_plot_conditional_joint_distribution(df, 'class', numeric_cols, categorical_cols)
+#plotscatter(numeric_cols)
+#analyze_and_plot_conditional_joint_distribution(df, 'class', numeric_cols, categorical_cols)
 
 #listing columns
 columns = df.columns
